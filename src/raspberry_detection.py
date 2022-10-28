@@ -21,7 +21,7 @@ rospack = rospkg.RosPack()
 
 def build_model(is_cuda):
     YOLO_VERSION = "v4-raspberry-tiny"
-    net = cv2.dnn.readNet(rospack.get_path('malina_paket')+"/yolo_config/yolo" + YOLO_VERSION + ".weights", rospack.get_path('malina_paket')+"/yolo_config/yolo" + YOLO_VERSION + ".cfg")
+    net = cv2.dnn.readNet(rospack.get_path('raspberry_package')+"/yolo_config/yolo" + YOLO_VERSION + ".weights", rospack.get_path('raspberry_package')+"/yolo_config/yolo" + YOLO_VERSION + ".cfg")
     #net = cv2.dnn.readNet("config_files/yolov3_custom_last.weights", "config_files/yolov3_testing.cfg")
     if is_cuda:
         print("Attempty to use CUDA")
@@ -39,7 +39,7 @@ def build_model(is_cuda):
 
 def load_classes():
     class_list = []
-    with open(rospack.get_path('malina_paket')+"/yolo_config/raspberry_classes.txt", "r") as f:
+    with open(rospack.get_path('raspberry_package')+"/yolo_config/raspberry_classes.txt", "r") as f:
         class_list = [cname.strip() for cname in f.readlines()]
     return class_list
 
