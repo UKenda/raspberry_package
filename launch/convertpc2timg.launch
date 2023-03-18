@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find raspberry_package)/launch/run_bag.launch" />
+    <node name="pc2timg" pkg="raspberry_package" type="pc2img"/>
+</launch>

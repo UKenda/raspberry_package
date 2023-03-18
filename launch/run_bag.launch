@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="rosbag" type="play" name="player" output="screen" args="-l /home/ubuntu/Documents/maline_slike/bag/maline3.bag"/>
+    <node pkg="rqt_gui" type="rqt_gui" name ="rqt_gui"/>
+    <node pkg="rviz" type="rviz" name ="rviz"/>
+</launch>
