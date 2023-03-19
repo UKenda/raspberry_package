@@ -10,9 +10,11 @@ import ros_numpy
 import struct
 from cv_bridge import CvBridge 
 from sensor_msgs.msg import Image
-from sensor_msgs.msg import PointCloud2
+from sensor_msgs.msg import PointCloud2, PointField
 from visualization_msgs.msg import Marker
-
+from visualization_msgs.msg import MarkerArray
+from std_msgs.msg import Header
+from sensor_msgs import point_cloud2
 
 cv_bridge = CvBridge()
 rospack = rospkg.RosPack()
@@ -78,9 +80,11 @@ def main():
     pub_yolo_image = rospy.Publisher("/yolo/image",Image,queue_size=1)
     #pub_yolo_depth = rospy.Publisher("/yolo/depth",Image,queue_size=1)
     pub_pc2 = rospy.Publisher("data/point_cloud2", PointCloud2, queue_size=2)
-    #pub_pc2_detection = rospy.Publisher("costom/point_cloud2", PointCloud2, queue_size=2)
+    pub_pc2_detection = rospy.Publisher("costom/point_cloud2", PointCloud2, queue_size=2)
+    marker_arr_pub = rospy.Publisher("/raspberry/markers", MarkerArray)
     marker_pub = rospy.Publisher("/visualization_marker", Marker, queue_size=2)
     i=0    
+    markerArray = MarkerArray()
     while not rospy.is_shutdown():
     
         print("New image")
@@ -128,32 +132,84 @@ def main():
                 cv2.putText(cv_image, str(np.round(confidence,2)),(box[0], box[1] - 0), cv2.FONT_HERSHEY_PLAIN, 0.5, (0,0,0))
 
 
-                marker = Marker()
-                marker.header.frame_id = "camera_link"
-                marker.header.stamp = rospy.Time.now()
-                marker.type = 2
-                marker.id = 0
 
-                marker.scale.x = 0.01
-                marker.scale.y = 0.01
-                marker.scale.z = 0.01
-                marker.color.r = 0.0
-                marker.color.g = 1.0
-                marker.color.b = 0.0
-                marker.color.a = 1.0
-                marker.pose.position.x = 0
-                marker.pose.position.y = 0
-                marker.pose.position.z = 0
-                marker_pub.publish(marker)
-        print(anotatedBoxes[0])
-        for point in points:
-            image_point = project(point)      
 
+        num_boxes = 0
+        for box in anotatedBoxes:
             
-            #if()
+            num_boxes += 1
+
+        
+        centerRaspberry = np.zeros((num_boxes,4)) 
+        customPoint = []
+        r = int(105 )
+        g = int(0)
+        b = int(143)
+        a = int(255)
+        rgb = struct.unpack('I', struct.pack('BBBB', b, g, r, a))[0]
+        
+        for point in points:
+            image_point = project(point)  
+            i = 0    
+            for box in anotatedBoxes:     
+                
+                   
+                #for box in anotatedBoxes:
+                if(image_point[0] > box[0] and image_point[0] < box[0]+box[2] and 
+                image_point[1] > box[1] and image_point[1] < box[1]+box[3] ):
+                    #print(cameraCordinates)
+                    '''Use when drawing pc2 only raspberries'''
+                    centerRaspberry [i] +=[point[0],point[1],point[2],1] 
+                i =i+1
+
+                ''' customPoint.append([point[0],point[1],point[2],rgb])
+                    #print("hi")
+                
+                
+        fields = [PointField('x', 0, PointField.FLOAT32, 1),
+                PointField('y', 4, PointField.FLOAT32, 1),
+                PointField('z', 8, PointField.FLOAT32, 1),
+                # PointField('rgb', 12, PointField.UINT32, 1),
+                PointField('rgba', 12, PointField.UINT32, 1),
+                ]
+        #print(customPoint)
+        header = Header()
+        header.frame_id = "camera_depth_optical_frame"
+        pc2 = point_cloud2.create_cloud(header, fields, customPoint)
+        pc2.header.stamp = rospy.Time.now()
+        pub_pc2_detection.publish(pc2)
+        '''
+        i=int(0)
+        for m in markerArray.markers:
+            marker[0].action = marker[0].DELETEALL
+        marker = [Marker() for i in range(num_boxes)]
+        i=int(0)
+        for raspbery in centerRaspberry:
+            raspbery[0] = raspbery[0]/raspbery[3]
+            raspbery[1] = raspbery[1]/raspbery[3]
+            raspbery[2] = raspbery[2]/raspbery[3]
+            raspbery[3] = 0
+            marker[i].id = i
+            marker[i].header.frame_id = "camera_depth_optical_frame"
+            marker[i].header.stamp = rospy.Time.now()
+            marker[i].action = marker[i].ADD
+            marker[i].type = marker[i].SPHERE
+
+            marker[i].scale.x = 0.04
+            marker[i].scale.y = 0.04
+            marker[i].scale.z = 0.04
+            marker[i].color.r = 0.0
+            marker[i].color.g = 0.0
+            marker[i].color.b = 1.0
+            marker[i].color.a = 0.5
+            marker[i].pose.position.x = raspbery[0]
+            marker[i].pose.position.y = raspbery[1]
+            marker[i].pose.position.z = raspbery[2]
+            markerArray.markers.append(marker[i])
+            i += 1
+        marker_arr_pub.publish(markerArray)
 
         pub_pc2.publish(pointCloudMsg)
-        
         pub_yolo_image.publish(cv_bridge.cv2_to_imgmsg(cv_image, "bgr8")) #publish our cloud image
 
 if __name__ == "__main__":

@@ -3,8 +3,9 @@ This is my master thesis. In project we detect raspberries and locate them in 3D
 The input data is rgb, depth image and pointcloud, as shown below on photos.
 ![rgb](images/rgb_input.png)
 ![depth](images/depth_input.png)
-![pointcloud1](images/pointcloud_1.png)
-![pointcloud2](images/pointcloud_2.png)
+![pointcloud1](images/pc2_segmentation1.png)
+![pointcloud2](images/pc2_segmentation2.png)
+![pointcloud2 usin markers](images/pc2_markers.png)
 ## YOLO weights and config
 
  
