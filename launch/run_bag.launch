@@ -1,5 +1,9 @@
 <launch>
-    <node pkg="rosbag" type="play" name="player" output="screen" args="-l /home/ubuntu/Documents/maline_slike/bag/maline1.bag"/>
+    <node pkg="rosbag" type="play" name="player" output="screen" args="-l /home/urban/Documents/maline/bag/maline2.bag"/>
     <node pkg="rqt_gui" type="rqt_gui" name ="rqt_gui"/>
-    <node pkg="rviz" type="rviz" name ="rviz"/>
+    <!-- Rviz config -->
+    <arg name="rviz_config" default="$(find raspberry_package)/rviz/config.rviz"/>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(arg rviz_config)" />
+    <node type="raspberry_detection.py" name="raspberry_detection" pkg="raspberry_package"/>
+
 </launch>
